@@ -1,0 +1,96 @@
+version: '3.8'
+services:
+  rabbitmq-service:
+    container_name: docker-assignment2-rabbitmq-service
+    image: rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    expose:
+      - 5672
+      - 15672
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  data-service:
+    container_name: docker-assignment2-data-service
+    build:
+      context: .
+      dockerfile: ./data-service/Dockerfile
+    image: docker-assignment2/data-service
+    depends_on:
+      rabbitmq-service:
+          condition: service_healthy
+    links:
+      - rabbitmq-service
+
+  inventory-service:
+    container_name: docker-assignment2-inventory-service
+    build:
+      context: .
+      dockerfile: ./inventory-service/Dockerfile
+    image: docker-assignment2/inventory-service
+    ports:
+      - "5001:5000"
+    depends_on:
+      rabbitmq-service:
+          condition: service_healthy
+    links:
+      - rabbitmq-service
+
+  shipping-service:
+    container_name: docker-assignment2-shipping-service
+    build:
+      context: .
+      dockerfile: ./shipping-service/Dockerfile
+    image: docker-assignment2/shipping-service
+    ports:
+      - "5009:5000"
+    depends_on:
+      rabbitmq-service:
+          condition: service_healthy
+    links:
+      - rabbitmq-service
+
+  order-service:
+    container_name: docker-assignment2-order-service
+    build:
+      context: .
+      dockerfile: ./order-service/Dockerfile
+    image: docker-assignment2/order-service
+    ports:
+      - "5005:5000"
+    depends_on:
+      rabbitmq-service:
+          condition: service_healthy
+    links:
+      - rabbitmq-service
+
+  users-service:
+    container_name: docker-assignment2-users-service
+    build:
+      context: .
+      dockerfile: ./users-service/Dockerfile
+    image: docker-assignment2/users-service
+    ports:
+      - "5002:5000"
+    depends_on:
+      rabbitmq-service:
+          condition: service_healthy
+    links:
+      - rabbitmq-service
+
+  webhook-service:
+    container_name: docker-assignment2-webhook-service
+    build:
+      context: .
+      dockerfile: ./webhook-service/Dockerfile
+    image: docker-assignment2/webhook-service
+    depends_on:
+      rabbitmq-service:
+          condition: service_healthy
+    links:
+      - rabbitmq-service
